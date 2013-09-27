@@ -31,5 +31,5 @@ with open('out.csv', 'w', newline='') as gradeFileOut:
     gradeWriter = csv.DictWriter(gradeFileOut, fieldNames, dialect=gradeDialect)
     gradeWriter.writeheader()
 
-    for row in rows:
-        gradeWriter.writerow(row)
+    for v in students.values():
+        gradeWriter.writerow(v)
