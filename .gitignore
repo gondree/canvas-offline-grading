@@ -1,0 +1,8 @@
+# Editor Cruft
+*~
+
+# Python Cruft
+*.pyc
+
+# Output
+out.csv
