@@ -1,12 +1,31 @@
 #!/usr/bin/env python3
 
+# Basic program to read csv file and spit it back out
+
 import csv
 
-with open('test.csv', newline='') as gradeFile:
+rows = []
+gradeDialect = None
+fieldNames = None
 
-    dialect = csv.Sniffer().sniff(gradeFile.read(1024))
-    gradeFile.seek(0)
-    gradeReader = csv.reader(gradeFile, dialect)
+csv.register_dialect('moodle', delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL, lineterminator='\n')
+
+with open('in.csv', 'r', newline='') as gradeFileIn:
+
+    gradeDialect = csv.Sniffer().sniff(gradeFileIn.read())
+    gradeFileIn.seek(0)
+    gradeHeader = csv.Sniffer().has_header(gradeFileIn.read())
+    gradeFileIn.seek(0)
+    gradeReader = csv.DictReader(gradeFileIn, dialect=gradeDialect)
+    fieldNames = gradeReader.fieldnames
 
     for row in gradeReader:
-        print(', '.join(row))
+        rows += [row]
+
+with open('out.csv', 'w', newline='') as gradeFileOut:
+
+    gradeWriter = csv.DictWriter(gradeFileOut, fieldNames, dialect=gradeDialect)
+    gradeWriter.writeheader()
+
+    for row in rows:
+        gradeWriter.writerow(row)
