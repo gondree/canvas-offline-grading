@@ -4,9 +4,9 @@ import csv
 
 with open('test.csv', newline='') as gradeFile:
 
-    dialect = csv.Sniffer().sniff(gradesheet.read(1024))
+    dialect = csv.Sniffer().sniff(gradeFile.read(1024))
     gradeFile.seek(0)
-    gradereader = csv.reader(gradesheet, dialect)
+    gradeReader = csv.reader(gradeFile, dialect)
 
-    for row in gradereader:
+    for row in gradeReader:
         print(', '.join(row))
