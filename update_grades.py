@@ -9,7 +9,11 @@ students = {}
 gradeDialect = None
 fieldNames = None
 
-csv.register_dialect('moodle', delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL, lineterminator='\n')
+csv.register_dialect('moodle',
+                     delimiter=',',
+                     quotechar='"',
+                     quoting=csv.QUOTE_MINIMAL,
+                     lineterminator='\n')
 
 with open('in.csv', 'r', newline='') as gradeFileIn:
 
