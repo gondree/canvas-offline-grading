@@ -5,6 +5,7 @@
 import csv
 
 rows = []
+students = {}
 gradeDialect = None
 fieldNames = None
 
@@ -21,6 +22,9 @@ with open('in.csv', 'r', newline='') as gradeFileIn:
 
     for row in gradeReader:
         rows += [row]
+
+for row in rows:
+    students[row['Full name']] = row
 
 with open('out.csv', 'w', newline='') as gradeFileOut:
 
