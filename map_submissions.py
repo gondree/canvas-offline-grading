@@ -17,17 +17,19 @@ for rootDir, subdirs, subfiles in os.walk(tempDir):
     os.chdir(rootDir)
 
     for subfile in subfiles:
-        if (subfile.split('.')[-1] == 'zip'):
+        subfileSplit = subfile.split('.')
+        if (subfileSplit[-1] == 'zip'):
             print("Processing {!s}".format(subfile))
-            subprocess.check_call(['unzip', '-d', tempDir, subfile])
+            outDir = ''.join(subfileSplit[:-1])
+            subprocess.check_call(['unzip', '-d', outDir, subfile])
             origcwd2 = os.getcwd()
-            print("Entering {!s}".format(tempDir))
-            os.chdir(tempDir)
+            print("Entering {!s}".format(outDir))
+            os.chdir(outDir)
             print("Submission contains: {!s}".format(os.listdir()))
             print("Returning to {!s}".format(origcwd2))
             os.chdir(origcwd2)
             print("Removing {!s}".format(tempDir))
-            shutil.rmtree(tempDir)
+            shutil.rmtree(outDir)
 
     print("Returning to {!s}".format(origcwd1))
     os.chdir(origcwd1)
