@@ -30,6 +30,9 @@ with open('in.csv', 'r', newline='') as gradeFileIn:
 for row in rows:
     students[row['Full name']] = row
 
+for v in students.values():
+    v['Grade'] = '97.3'
+
 with open('out.csv', 'w', newline='') as gradeFileOut:
 
     gradeWriter = csv.DictWriter(gradeFileOut, fieldNames, dialect=gradeDialect)
