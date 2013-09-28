@@ -34,6 +34,10 @@ License:
     along with moodle-offline-grading (see COPYING).  If not, see
     <http://www.gnu.org/licenses/>.
 
+Requirements:
+    moodle-offline-grading uses Python 3.3
+    Tested on Ubuntu 13.10 x64
+
 Process:
     1. Create a new Moodle assignment, utilizing the "Feedback files"
        and "Offline grading worksheet" options under the "Feedback
