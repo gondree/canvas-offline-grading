@@ -3,6 +3,7 @@
 
 # Python Cruft
 *.pyc
+__pycache__/*
 
 # Output
 out.csv

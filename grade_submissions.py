@@ -23,10 +23,10 @@ def _main(argv=None):
 
     # Setup Argument Parsing
     parser = argparse.ArgumentParser(description='Grade Moodle Submissions')
-    parser.add_argument('input_worksheet', type=str,
-                       help='Input Grading Worksheet CSV File')
     parser.add_argument('output_worksheet', type=str,
                        help='Output Grading Worksheet CSV File')
+    parser.add_argument('input_worksheet', type=str,
+                       help='Input Grading Worksheet CSV File')
     parser.add_argument('submissions', type=str,
                        help='Zip file of all submissions')
     parser.add_argument('grading_script', type=str,
@@ -34,8 +34,8 @@ def _main(argv=None):
 
     # Parse Arguments
     args = parser.parse_args(argv)
-    input_worksheet = args.input_worksheet
     output_worksheet = args.output_worksheet
+    input_worksheet = args.input_worksheet
     submissions = args.submissions
     grading_script = args.grading_script
 

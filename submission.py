@@ -1,1 +1,0 @@
-test/submission_good.py
