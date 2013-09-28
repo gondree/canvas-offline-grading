@@ -50,14 +50,14 @@ def write_worksheet(csv_file, contents, dialect, fields):
 
 def _main(argv=None):
     """
-    Module main function
+    Module Grading Worksheet Module Unit Tests
 
     """
 
     argv = argv or sys.argv[1:]
 
     # Setup Argument Parsing
-    parser = argparse.ArgumentParser(description='Process Moodle Grading Worksheet')
+    parser = argparse.ArgumentParser(description='Test Process Moodle Grading Worksheet')
     parser.add_argument('input_csv', type=str,
                        help='Input Grading Worksheet CSV File')
     parser.add_argument('output_csv', type=str,
