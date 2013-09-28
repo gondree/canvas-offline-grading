@@ -4,3 +4,8 @@ Andy Sayler
 www.andysayler.com
 
 Tools for running grading scripts on Moodle 2 assignments
+
+Example:
+  ./grade_submissions.py in.csv out.csv in.zip submission_grader.py
+
+See './grade_submissions -h' for details
