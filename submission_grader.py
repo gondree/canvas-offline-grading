@@ -9,7 +9,7 @@ CORRECT = "Hello World"
 
 try:
     output = subprocess.check_output(["python3", "submission.py"])
-except CalledProcessError as err:
+except subprocess.CalledProcessError as err:
     print("0.00", file=sys.stdout)
     print("Error running submission: {!s}".format(err), file=sys.stderr)
     sys.exit(0)
