@@ -44,46 +44,58 @@ def _main(argv=None):
 
     subprocess.check_call(['unzip', '-d', TEMPDIR, submissions])
 
-    for root, subdirs, subfiles in os.walk(TEMPDIR):
+    try:
+        for root, subdirs, subfiles in os.walk(TEMPDIR):
 
-        origwd = os.getcwd()
-        script_path = origwd + "/" + grading_script
-        print("Entering {!s}".format(root))
-        os.chdir(root)
+            origwd = os.getcwd()
+            script_path = origwd + "/" + grading_script
+            print("Entering {!s}".format(root))
+            os.chdir(root)
 
-        for subfile in subfiles:
-
-            subfile_split_dot = subfile.split('.')
-            subfile_split_under = subfile.split('_')
-            if (subfile_split_dot[-1] == 'zip'):
-                print("Processing submission {!s}".format(subfile))
-                student = subfile_split_under[0]
-                print("Submission by {!s}".format(student))
-                procdir = ''.join(subfile_split_dot[:-1])
-                subprocess.check_call(['unzip', '-d', procdir, subfile])
-                cwd = os.getcwd()
-                print("Entering {!s}".format(procdir))
-                os.chdir(procdir)
-                print("Running {!s}".format(script_path))
-                try:
-                    output = subprocess.check_output([script_path])
-                    output_str = output.decode()
-                    output_str_clean = output_str.rstrip().lstrip()
-                    print("Grade = {!s}".format(output_str_clean))
-                    grades[student]['Grade'] = output_str_clean
-                except subprocess.CalledProcessError as err:
-                    print("Error grading submission: {!s}".format(err), file=sys.stderr)
-                    grades[student]['Grade'] = ERROR_GRADE
-                print("Returning to {!s}".format(cwd))
-                os.chdir(cwd)
-                print("Removing {!s}".format(procdir))
-                shutil.rmtree(procdir)
-
-        print("Returning to {!s}".format(origwd))
-        os.chdir(origwd)
-
-    print("Removing {!s}".format(TEMPDIR))
-    shutil.rmtree(TEMPDIR)
+            try:
+                for subfile in subfiles:
+                    subfile_split_dot = subfile.split('.')
+                    subfile_split_under = subfile.split('_')
+                    if (subfile_split_dot[-1] == 'zip'):
+                        print("Processing submission {!s}".format(subfile))
+                        student = subfile_split_under[0]
+                        print("Submission by {!s}".format(student))
+                        procdir = ''.join(subfile_split_dot[:-1])
+                        subprocess.check_call(['unzip', '-d', procdir, subfile])
+                        cwd = os.getcwd()
+                        print("Entering {!s}".format(procdir))
+                        os.chdir(procdir)
+                        print("Running {!s}".format(script_path))
+                        try:
+                            output = subprocess.check_output([script_path])
+                            output_str = output.decode()
+                            output_str_clean = output_str.rstrip().lstrip()
+                            print("Grade = {!s}".format(output_str_clean))
+                            try:
+                                grades[student]['Grade'] = output_str_clean
+                            except KeyError as err:
+                                print("ERROR: Student {!s} not found in grading worksheet: {!s}".format(student, err), file=sys.stderr)
+                        except subprocess.CalledProcessError as err:
+                            print("ERROR: Error grading submission: {!s}".format(err), file=sys.stderr)
+                            try:
+                                grades[student]['Grade'] = ERROR_GRADE
+                            except KeyError as err:
+                                print("Student {!s} not found in grading worksheet: {!s}".format(student, err), file=sys.stderr)
+                        finally:
+                            print("Returning to {!s}".format(cwd))
+                            os.chdir(cwd)
+                            print("Removing {!s}".format(procdir))
+                            shutil.rmtree(procdir)
+            except:
+                raise
+            finally:
+                print("Returning to {!s}".format(origwd))
+                os.chdir(origwd)
+    except:
+        raise
+    finally:
+        print("Removing {!s}".format(TEMPDIR))
+        shutil.rmtree(TEMPDIR)
 
     # Write Output
     gw.write_worksheet(output_worksheet, grades, dialect, fields)
