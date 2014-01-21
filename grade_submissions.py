@@ -57,7 +57,7 @@ def _main(argv=None):
 
     # Setup Stats
     found = 0
-    graded = 0
+    unzipped = 0
     scored = 0
     recorded = 0
     zeros = 0
@@ -65,13 +65,12 @@ def _main(argv=None):
     nerrors = 0
     ferrors = 0
     gerrors = 0
-    sumtotal = 0
 
     try:
         subprocess.check_call(['unzip', '-d', TEMPDIR, submissions], stdout=framelog)
     except subprocess.CalledProcessError as err:
         print("ERROR: Could not extract {!s}: {!s}".format(submissions, err), file=sys.stderr)
-        return _EXIT_ERROR;
+        raise
     try:
         for root, subdirs, subfiles in os.walk(TEMPDIR):
             origwd = os.getcwd()
@@ -88,12 +87,17 @@ def _main(argv=None):
                         student = subfile_split_under[0]
                         print("Submission by {!s}".format(student))
                         procdir = ''.join(subfile_split_dot[:-1])
-                        subprocess.check_call(['unzip', '-d', procdir, subfile], stdout=framelog)
+                        try:
+                            subprocess.check_call(['unzip', '-d', procdir, subfile], stdout=framelog)
+                        except subprocess.CalledProcessError as err:
+                            print("ERROR: Could not extract {!s}: {!s}".format(subfile, err), file=sys.stderr)
+                            raise
+                        else:
+                            unzipped += 1
                         cwd = os.getcwd()
                         print("Entering {!s}".format(procdir))
                         os.chdir(procdir)
                         print("Running {!s}".format(script_path))
-                        graded += 1
                         grade = float('nan')
                         try:
                             output = subprocess.check_output([script_path], stderr=gradelog)
@@ -147,7 +151,7 @@ def _main(argv=None):
 
     # Print Stats
     print("Submissions Found:    {}".format(found))
-    print("Submissions Graded:   {}".format(graded))
+    print("Submissions Unzipped: {}".format(unzipped))
     print("Submissions Scored:   {}".format(scored))
     print("Submissions Recorded: {}".format(recorded))
     print("Submissions Receiving Full Credit ({:6.2f}): {}".format(_FULL_CREDIT, fulls))
