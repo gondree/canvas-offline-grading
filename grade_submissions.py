@@ -84,14 +84,17 @@ def _main(argv=None):
                     subfile_split_under = subfile.split('_')
                     if (subfile_split_dot[-1] == 'zip'):
                         print("Processing submission {!s}".format(subfile))
+                        print("Processing submission {!s}".format(subfile), file=gradelog)
                         student = subfile_split_under[0]
                         print("Submission by {!s}".format(student))
+                        print("Submission by {!s}".format(student), file=gradelog)
                         procdir = ''.join(subfile_split_dot[:-1])
                         try:
                             subprocess.check_call(['unzip', '-d', procdir, subfile], stdout=framelog)
                         except subprocess.CalledProcessError as err:
-                            print("ERROR: Could not extract {!s}: {!s}".format(subfile, err), file=sys.stderr)
-                            raise
+                            print("ERROR: Could not extract {!s}: {!s}, check the {:s} log".format(subfile, err, _FRAMEWORK_LOG_PATH), file=sys.stderr)
+                            ferrors += 1
+                            continue
                         else:
                             unzipped += 1
                         cwd = os.getcwd()
@@ -111,6 +114,9 @@ def _main(argv=None):
                         except subprocess.CalledProcessError as err:
                             print("ERROR: Grading script returned error, check the {:s} log".format(_GRADER_LOG_PATH), file=sys.stderr)
                             gerrors += 1
+                        except PermissionError as err:
+                            print("ERROR: Framework returned permission error, does {:s} have execute permissions?".format(script_path), file=sys.stderr)
+                            ferrors += 1
                         finally:
                             if math.isfinite(grade):
                                 scored += 1
@@ -125,6 +131,8 @@ def _main(argv=None):
                                     ferrors += 1
                                 else:
                                     print("Grade = {}".format(grades[student]['Grade']))
+                                    print("Grade = {}".format(grades[student]['Grade']), file=gradelog)
+                                    print("\n", file=gradelog)
                                     recorded += 1
                                     nerrors += 1
                             print("Returning to {!s}".format(cwd))
