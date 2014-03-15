@@ -40,6 +40,8 @@ def _main(argv=None):
                        help='Zip file of all submissions')
     parser.add_argument('grading_script', type=str,
                        help='Submssion grading script')
+    parser.add_argument('--target_name', type=str, dest='target_name',
+                       help='Target name for single file submission')
 
     # Parse Arguments
     args = parser.parse_args(argv)
@@ -47,6 +49,7 @@ def _main(argv=None):
     input_worksheet = args.input_worksheet
     submissions = args.submissions
     grading_script = args.grading_script
+    target_name = args.target_name
 
     # Read Input
     grades, dialect, fields = gw.read_worksheet(input_worksheet)
@@ -109,9 +112,13 @@ def _main(argv=None):
                             unzipped += 1
                     else:
                         # Single File Submission
+                        if target_name:
+                            subfile_out = target_name
+                        else:
+                            subfile_out = subfile
                         try:
                             subprocess.check_call(['mkdir', procdir], stdout=framelog)
-                            subprocess.check_call(['mv', subfile, '{}/{}'.format(procdir, subfile)], stdout=framelog)
+                            subprocess.check_call(['mv', subfile, '{}/{}'.format(procdir, subfile_out)], stdout=framelog)
                         except subprocess.CalledProcessError as err:
                             print("ERROR: Could not move {!s} to {!s}: {!s}. ".format(subfile, procdir, err) +
                                   "Check the {:s} log".format(_FRAMEWORK_LOG_PATH), file=sys.stderr)
