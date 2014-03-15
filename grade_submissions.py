@@ -58,6 +58,7 @@ def _main(argv=None):
     # Setup Stats
     found = 0
     unzipped = 0
+    moved = 0
     scored = 0
     recorded = 0
     zeros = 0
@@ -70,75 +71,104 @@ def _main(argv=None):
         subprocess.check_call(['unzip', '-d', TEMPDIR, submissions], stdout=framelog)
     except subprocess.CalledProcessError as err:
         print("ERROR: Could not extract {!s}: {!s}".format(submissions, err), file=sys.stderr)
-        raise
+        return _EXIT_ERROR
     try:
         for root, subdirs, subfiles in os.walk(TEMPDIR):
+
             origwd = os.getcwd()
             script_path = origwd + "/" + grading_script
             print("Entering {!s}".format(root))
             os.chdir(root)
+
+            # Walk submitted file tree
             try:
                 for subfile in subfiles:
+
+                    # Parse File Name
                     found += 1
                     subfile_split_dot = subfile.split('.')
                     subfile_split_under = subfile.split('_')
+                    print("Processing submission {!s}".format(subfile))
+                    print("Processing submission {!s}".format(subfile), file=gradelog)
+                    student = subfile_split_under[0]
+                    print("Submission by {!s}".format(student))
+                    print("Submission by {!s}".format(student), file=gradelog)
+                    procdir = ''.join(subfile_split_dot[:-1])
+
+                    # Extract or Copy Submission
                     if (subfile_split_dot[-1] == 'zip'):
-                        print("Processing submission {!s}".format(subfile))
-                        print("Processing submission {!s}".format(subfile), file=gradelog)
-                        student = subfile_split_under[0]
-                        print("Submission by {!s}".format(student))
-                        print("Submission by {!s}".format(student), file=gradelog)
-                        procdir = ''.join(subfile_split_dot[:-1])
+                        # Zip File Submission
                         try:
                             subprocess.check_call(['unzip', '-d', procdir, subfile], stdout=framelog)
                         except subprocess.CalledProcessError as err:
-                            print("ERROR: Could not extract {!s}: {!s}, check the {:s} log".format(subfile, err, _FRAMEWORK_LOG_PATH), file=sys.stderr)
+                            print("ERROR: Could not extract {!s}: {!s}. ".format(subfile, err) +
+                                  "Check the {:s} log".format(_FRAMEWORK_LOG_PATH), file=sys.stderr)
                             ferrors += 1
                             continue
                         else:
                             unzipped += 1
-                        cwd = os.getcwd()
-                        print("Entering {!s}".format(procdir))
-                        os.chdir(procdir)
-                        print("Running {!s}".format(script_path))
-                        grade = float('nan')
+                    else:
+                        # Single File Submission
                         try:
-                            output = subprocess.check_output([script_path], stderr=gradelog)
-                            output_str = output.decode()
-                            output_str_clean = output_str.rstrip().lstrip()
-                            try:
-                                grade = float(output_str_clean)
-                            except:
-                                print("ERROR: Could not convert '{!s}' to float: {!s}".format(output_str_clean, err), file=sys.stderr)
-                                raise
+                            subprocess.check_call(['mkdir', procdir], stdout=framelog)
+                            subprocess.check_call(['mv', subfile, '{}/{}'.format(procdir, subfile)], stdout=framelog)
                         except subprocess.CalledProcessError as err:
-                            print("ERROR: Grading script returned error, check the {:s} log".format(_GRADER_LOG_PATH), file=sys.stderr)
-                            gerrors += 1
-                        except PermissionError as err:
-                            print("ERROR: Framework returned permission error, does {:s} have execute permissions?".format(script_path), file=sys.stderr)
+                            print("ERROR: Could not move {!s} to {!s}: {!s}. ".format(subfile, procdir, err) +
+                                  "Check the {:s} log".format(_FRAMEWORK_LOG_PATH), file=sys.stderr)
                             ferrors += 1
-                        finally:
-                            if math.isfinite(grade):
-                                scored += 1
-                                if(math.ceil(grade) == _FULL_CREDIT):
-                                    fulls += 1
-                                if(math.floor(grade) == _ZERO_CREDIT):
-                                    zeros += 1
-                                try:
-                                    grades[student]['Grade'] = "{:.2f}".format(grade)
-                                except KeyError as err:
-                                    print("ERROR: Student {!s} not found in grading worksheet: {!s}".format(student, err), file=sys.stderr)
-                                    ferrors += 1
-                                else:
-                                    print("Grade = {}".format(grades[student]['Grade']))
-                                    print("Grade = {}".format(grades[student]['Grade']), file=gradelog)
-                                    print("\n", file=gradelog)
-                                    recorded += 1
-                                    nerrors += 1
-                            print("Returning to {!s}".format(cwd))
-                            os.chdir(cwd)
-                            print("Removing {!s}".format(procdir))
-                            shutil.rmtree(procdir)
+                            continue
+                        else:
+                            moved += 1
+
+                    # Enter Submission Directory
+                    cwd = os.getcwd()
+                    print("Entering {!s}".format(procdir))
+                    os.chdir(procdir)
+                    print("Running {!s}".format(script_path))
+
+                    # Call Grading Script
+                    grade = float('nan')
+                    try:
+                        output = subprocess.check_output([script_path], stderr=gradelog)
+                        output_str = output.decode()
+                        output_str_clean = output_str.rstrip().lstrip()
+                        try:
+                            grade = float(output_str_clean)
+                        except:
+                            print("ERROR: Could not convert '{!s}' to float: {!s}".format(output_str_clean, err), file=sys.stderr)
+                            raise
+                    except subprocess.CalledProcessError as err:
+                        print("ERROR: Grading script returned error, check the {:s} log".format(_GRADER_LOG_PATH), file=sys.stderr)
+                        gerrors += 1
+                    except PermissionError as err:
+                        print("ERROR: Framework returned permission error, does {:s} have execute permissions?".format(script_path), file=sys.stderr)
+                        ferrors += 1
+
+                    # Write Out Grade
+                    if math.isfinite(grade):
+                        scored += 1
+                        if(math.ceil(grade) == _FULL_CREDIT):
+                            fulls += 1
+                        if(math.floor(grade) == _ZERO_CREDIT):
+                            zeros += 1
+                        try:
+                            grades[student]['Grade'] = "{:.2f}".format(grade)
+                        except KeyError as err:
+                            print("ERROR: Student {!s} not found in grading worksheet: {!s}".format(student, err), file=sys.stderr)
+                            ferrors += 1
+                        else:
+                            print("Grade = {}".format(grades[student]['Grade']))
+                            print("Grade = {}".format(grades[student]['Grade']), file=gradelog)
+                            print("\n", file=gradelog)
+                            recorded += 1
+                            nerrors += 1
+
+                    # Leave Submission Directory
+                    print("Returning to {!s}".format(cwd))
+                    os.chdir(cwd)
+                    print("Removing {!s}".format(procdir))
+                    shutil.rmtree(procdir)
+
             except:
                 raise
             finally:
@@ -160,6 +190,7 @@ def _main(argv=None):
     # Print Stats
     print("Submissions Found:    {}".format(found))
     print("Submissions Unzipped: {}".format(unzipped))
+    print("Submissions Moved:    {}".format(moved))
     print("Submissions Scored:   {}".format(scored))
     print("Submissions Recorded: {}".format(recorded))
     print("Submissions Receiving Full Credit ({:6.2f}): {}".format(_FULL_CREDIT, fulls))
