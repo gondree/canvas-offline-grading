@@ -9,7 +9,7 @@ import subprocess
 import sys
 import math
 
-import grading_worksheet as gw
+import moodle_grading_worksheet as gw
 import moodle_submissions as ms
 
 TEMPDIR = './tmp'
