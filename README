@@ -71,6 +71,8 @@ Files:
                                 Moodle grading_worksheet
     ./grading_worksheet.py    - A Python3 module for handling the
                                 Moodle grading worksheet format
+    ./moodle_submissions.py   - A Python3 module for handling the
+                                Moodle download submissions format
     ./test/hello_py_zip/
         submissions.zip       - An example set of basic "Hello World"
                                 Moodle submissions, each in its own
