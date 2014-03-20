@@ -10,13 +10,16 @@ Licensed under the GNU GPL version 3
 
 Tools for running grading scripts on Moodle 2 assignments
 
-Overview:
+OVERVIEW:
+
     These tools provide a basic framework for mapping an auto-grading
     script across a set of Moodle submissions and generating a grading
     worksheet appropriate for upload to Moodle's "Offline Grading"
     assignments.
 
-License:
+
+LICENSE:
+
     This file and all other files in this repository are part of
     moodle-offline-grading.
 
@@ -34,19 +37,21 @@ License:
     along with moodle-offline-grading (see COPYING).  If not, see
     <http://www.gnu.org/licenses/>.
 
-Requirements:
+REQUIRMENTS:
+
     moodle-offline-grading uses Python 3.3
     Tested on Ubuntu 13.10 x64
 
-Process:
+PROCESS:
+
     1. Create a new Moodle assignment, utilizing the "Feedback files"
        and "Offline grading worksheet" options under the "Feedback
        Types" drop down on the "Adding a new Assignment" page
     2. Have students upload their submissions, zipped into a single
        archive (or as a single file), to the assignment.
-       Make sure that they follow the
-       necessary rules to make auto-grading easier (e.g. standard
-       executable names and file layout, well defined interfaces, etc)
+       Make sure that they follow the necessary rules to make
+       auto-grading easier (e.g. standard executable names and
+       file layout, well defined interfaces, etc)
     3. Use the "Download all submissions" option in the "Grading
        action" drop-down menu on the assignment grading page to
        download a single zip file of all student submissions
@@ -62,7 +67,8 @@ Process:
        using the "Upload grading worksheet" option in the "Grading
        action" drop-down menu on the assignment grading page
 
-Files:
+FILES:
+
     README                    - This file
     ./grade_submissions.py    - Main grading framework script; maps
                                 an auto-grading script across a set
@@ -139,7 +145,32 @@ Auto-grading Script Interface:
         6. Script should take no run-time arguments
         7. Script should require no run-time input
 
-Example:
+USAGE:
+
+See './grade_submissions --help' for details:
+
+usage: grade_submissions.py [-h] [--target_name TARGET_NAME]
+                            [--extra_files EXTRA_FILES]
+                            output_worksheet input_worksheet submissions
+                            grading_script
+
+Grade Moodle Submissions
+
+positional arguments:
+  output_worksheet      Output Grading Worksheet CSV File
+  input_worksheet       Input Grading Worksheet CSV File
+  submissions           Zip file of all submissions
+  grading_script        Submssion grading script
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --target_name TARGET_NAME
+                        Target name for single file submission
+  --extra_files EXTRA_FILES
+                        Extra files to be copied into working directory
+
+EXAMPLES:
+
     # Zip-based Submissions
     ./grade_submissions.py out.csv \
         ./test/hello_py_zip/grading_worksheet.csv \
@@ -153,26 +184,22 @@ Example:
         ./test/hello_py_single/submission_grader.py \
         --target_name submission.py
 
-See './grade_submissions --help' for details:
+    # Target Name Grading
+    ./grade_submissions.py out.csv \
+        ./test/hello_py_single/grading_worksheet.csv \
+        ./test/hello_py_single/submissions.zip \
+        ./test/hello_py_single/submission_grader.py \
+        --target_name submission.py
 
-    usage: grade_submissions.py [-h] [--target_name TARGET_NAME] \
-               output_worksheet input_worksheet submissions grading_script
+    # Extra Files (e.g. Seed File) Grading
+    ./grade_submissions.py out.csv \
+        ./test/hello_py_single/grading_worksheet.csv \
+        ./test/hello_py_single/submissions.zip \
+        ./test/hello_py_single/submission_grader.py \
+        --extra_files test/Seed.txt
 
-    Grade Moodle Submissions
+LIMITATIONS:
 
-    positional arguments:
-        output_worksheet      Output Grading Worksheet CSV File
-        input_worksheet       Input Grading Worksheet CSV File
-        submissions           Zip file of all submissions
-        grading_script        Submssion grading script
-
-    optional arguments:
-        -h, --help            show this help message and exit
-        --target_name TARGET_NAME
-                              Target name for single file submission
-
-
-Limitations:
     This project is a work in progress. At this time it lacks support for
     robust error handling, submission sand-boxing, feedback logging, and a
     variety of other features planned for future development. Use at your

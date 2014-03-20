@@ -43,6 +43,8 @@ def _main(argv=None):
                        help='Submssion grading script')
     parser.add_argument('--target_name', type=str, dest='target_name',
                        help='Target name for single file submission')
+    parser.add_argument('--extra_files', type=str, dest='extra_files',
+                       help='Extra files to be copied into working directory')
 
     # Parse Arguments
     args = parser.parse_args(argv)
@@ -51,6 +53,7 @@ def _main(argv=None):
     submissions = args.submissions
     grading_script = args.grading_script
     target_name = args.target_name
+    extra_files = args.extra_files
 
     # Read Input
     grades, dialect, fields = gw.read_worksheet(input_worksheet)
@@ -119,15 +122,39 @@ def _main(argv=None):
                             file_out = submission.file_name
                         try:
                             subprocess.check_call(['mkdir', procdir], stdout=framelog)
-                            subprocess.check_call(['mv', subfile, '{}/{}'.format(procdir, file_out)],
+                            subprocess.check_call(['cp', subfile, '{}/{}'.format(procdir, file_out)],
                                                   stdout=framelog)
                         except subprocess.CalledProcessError as err:
-                            print("ERROR: Could not move {}: {}. ".format(subfile, err) +
+                            print("ERROR: Could not copy {}: {}. ".format(subfile, err) +
                                   "Check the {} log".format(_FRAMEWORK_LOG_PATH), file=sys.stderr)
                             ferrors += 1
                             continue
                         else:
                             moved += 1
+
+                    # Extract or Copy Extra Files
+                    if extra_files:
+                        extra_files_path = origwd + "/" + extra_files
+                        extra_files_base, extra_files_ext = os.path.splitext(extra_files_path)
+                        if (extra_files_ext == 'zip'):
+                            # Zip File Extras
+                            try:
+                                subprocess.check_call(['unzip', '-d', procdir, extra_files_path], stdout=framelog)
+                            except subprocess.CalledProcessError as err:
+                                print("ERROR: Could not extract {}: {}. ".format(extra_files_path, err) +
+                                      "Check the {} log".format(_FRAMEWORK_LOG_PATH), file=sys.stderr)
+                                ferrors += 1
+                                raise
+                        else:
+                            # Single File Extras
+                            try:
+                                subprocess.check_call(['cp', extra_files_path, '{}/'.format(procdir)],
+                                                      stdout=framelog)
+                            except subprocess.CalledProcessError as err:
+                                print("ERROR: Could not copy {}: {}. ".format(extra_files_path, err) +
+                                      "Check the {} log".format(_FRAMEWORK_LOG_PATH), file=sys.stderr)
+                                ferrors += 1
+                                raise
 
                     # Enter Submission Directory
                     cwd = os.getcwd()
