@@ -143,7 +143,7 @@ def _main(argv=None):
                         output_str_clean = output_str.rstrip().lstrip()
                         try:
                             grade = float(output_str_clean)
-                        except:
+                        except ValueError as err:
                             print("ERROR: Could not convert '{}' to float: {}".format(output_str_clean, err), file=sys.stderr)
                             raise
                     except subprocess.CalledProcessError as err:
