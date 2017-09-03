@@ -12,13 +12,16 @@ import math
 import moodle_grading_worksheet as gw
 import moodle_submissions as ms
 
-TEMPDIR = './tmp'
-_FRAMEWORK_LOG_PATH = './framework.log'
-_GRADER_LOG_PATH = './grader.log'
-_ERROR_GRADE = '0.00'
+_MOODLE_VERSION = "3.1"
 
+TEMPDIR = '.tmp'
+_FRAMEWORK_LOG_PATH = 'framework.log'
+_GRADER_LOG_PATH = 'grader.log'
+_FEEDBACK_PATH = 'feedback'
+
+_ERROR_GRADE = '0.00'
 _ZERO_CREDIT = 0
-_FULL_CREDIT = 100
+_FULL_CREDIT = 10
 
 _EXIT_ERROR = -1
 _EXIT_SUCCESS = 0
@@ -28,6 +31,7 @@ def _main(argv=None):
     Map grading script across submissions, populating grading worksheet
 
     """
+    global TEMPDIR, _FRAMEWORK_LOG_PATH, _GRADER_LOG_PATH, _FEEDBACK_PATH
 
     argv = argv or sys.argv[1:]
 
@@ -58,9 +62,18 @@ def _main(argv=None):
     # Read Input
     grades, dialect, fields = gw.read_worksheet(input_worksheet)
 
+    # Make Paths Absolute
+    root = os.getcwd() + '/'
+    TEMPDIR = root + TEMPDIR
+    _FRAMEWORK_LOG_PATH = root + _FRAMEWORK_LOG_PATH
+    _GRADER_LOG_PATH = root + _GRADER_LOG_PATH
+    _FEEDBACK_PATH = root + _FEEDBACK_PATH
+
     # Setup Logs
     framelog = open(_FRAMEWORK_LOG_PATH, mode='w+t')
     gradelog = open(_GRADER_LOG_PATH, mode='w+t')
+    if not os.path.exists(_FEEDBACK_PATH):
+        os.mkdir(_FEEDBACK_PATH)
 
     # Setup Stats
     found = 0
@@ -94,7 +107,7 @@ def _main(argv=None):
                     found += 1
 
                     # Parse File Name
-                    submission = ms.Submission(subfile)
+                    submission = ms.Submission(root, subfile)
                     print("Processing submission {}".format(subfile))
                     print("Processing submission {}".format(subfile), file=gradelog)
                     student = submission.submitter_name
@@ -162,10 +175,17 @@ def _main(argv=None):
                     os.chdir(procdir)
                     print("Running {}".format(script_path))
 
+                    # Make the Feedback File
+                    if _MOODLE_VERSION == "3.1":
+                        feedback_dir = _FEEDBACK_PATH+'/'+submission.path+'/'
+                        os.mkdir(feedback_dir)
+                        feedback_file = feedback_dir + submission.submitter_name + '_feedback.txt'
+                    feedbacklog = open(feedback_file, mode='w+t')
+
                     # Call Grading Script
                     grade = float('nan')
                     try:
-                        output = subprocess.check_output([script_path], stderr=gradelog)
+                        output = subprocess.check_output([script_path, file_out], stderr=feedbacklog)
                         output_str = output.decode()
                         output_str_clean = output_str.rstrip().lstrip()
                         try:
@@ -181,6 +201,8 @@ def _main(argv=None):
                         print("ERROR: Framework returned permission error: " +
                               "Does {} have execute permissions?".format(script_path), file=sys.stderr)
                         ferrors += 1
+                    finally:
+                        feedbacklog.close()
 
                     # Write Out Grade
                     if math.isfinite(grade):
