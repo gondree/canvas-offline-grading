@@ -149,7 +149,7 @@ def _main(argv=None):
                     if extra_files:
                         extra_files_path = origwd + "/" + extra_files
                         extra_files_base, extra_files_ext = os.path.splitext(extra_files_path)
-                        if (extra_files_ext == 'zip'):
+                        if (extra_files_ext == '.zip' or extra_files_ext == 'zip'):
                             # Zip File Extras
                             try:
                                 subprocess.check_call(['unzip', '-d', procdir, extra_files_path], stdout=framelog)
@@ -178,7 +178,8 @@ def _main(argv=None):
                     # Make the Feedback File
                     if _MOODLE_VERSION == "3.1":
                         feedback_dir = _FEEDBACK_PATH+'/'+submission.path+'/'
-                        os.mkdir(feedback_dir)
+                        if not os.path.exists(feedback_dir):
+                            os.mkdir(feedback_dir)
                         feedback_file = feedback_dir + submission.submitter_name + '_feedback.txt'
                     feedbacklog = open(feedback_file, mode='w+t')
 
