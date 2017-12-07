@@ -194,14 +194,23 @@ def _main(argv=None):
                         except ValueError as err:
                             print("ERROR: Could not convert '{}' to float: {}".format(output_str_clean, err), file=sys.stderr)
                             raise
-                    except subprocess.CalledProcessError as err:
-                        print("ERROR: Grading script returned error: " +
-                              "Check the {} log".format(_GRADER_LOG_PATH), file=sys.stderr)
-                        gerrors += 1
                     except PermissionError as err:
                         print("ERROR: Framework returned permission error: " +
                               "Does {} have execute permissions?".format(script_path), file=sys.stderr)
                         ferrors += 1
+                    except subprocess.CalledProcessError as err:
+                        print("ERROR: Grading script returned error " + str(err.returncode) + ": " +
+                              "Check the {} log".format(_GRADER_LOG_PATH), file=sys.stderr)
+                        gerrors += 1
+
+                        # try to process output, since the error may not be a hard failure
+                        output_str = err.output.decode()
+                        output_str_clean = output_str.rstrip().lstrip()
+                        try:
+                            grade = float(output_str_clean)
+                        except ValueError as err:
+                            print("ERROR: Could not convert '{}' to float: {}".format(output_str_clean, err), file=sys.stderr)
+                            raise
                     finally:
                         feedbacklog.close()
 
