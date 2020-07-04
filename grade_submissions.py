@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-# Basic program to unzip a file of submission and walk each
-
 import argparse
 import os
 import shutil
@@ -9,8 +7,7 @@ import subprocess
 import sys
 import math
 
-import moodle_grading_worksheet as gw
-import moodle_submissions as ms
+import canvas_submissions as lms
 
 _MOODLE_VERSION = "3.1"
 
@@ -107,7 +104,7 @@ def _main(argv=None):
                     found += 1
 
                     # Parse File Name
-                    submission = ms.Submission(root, subfile)
+                    submission = lms.Submission(root, subfile)
                     print("Processing submission {}".format(subfile))
                     print("Processing submission {}".format(subfile), file=gradelog)
                     student = submission.submitter_name
