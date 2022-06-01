@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 
-# Module for parsing and manipulating Moodle submissions
-
-import sys
-import os
+import sys, os, yaml
 import json
 import pprint
 from argparse import ArgumentParser
@@ -35,29 +32,24 @@ if __name__ == '__main__':
     SCRIPTPATH = os.path.dirname(os.path.abspath(__file__))
 
     parser = ArgumentParser(description='Download submissions from Canvas')
-    parser.add_argument("--ASSIGNMENT_ID", type=int, 
-        dest='ASSIGNMENT_ID', default=None, required=True,
-        help="Canvas Assignment ID")
-    parser.add_argument("--COURSE_ID", type=int, 
-        dest='COURSE_ID', default=None, required=True,
-        help="Canvas Course ID")
-    parser.add_argument("--API_URL", type=str, 
-        dest='API_URL', default=None, required=True,
-        help="Canvas API URL")
-    parser.add_argument("--API_KEY", type=str, 
-        dest='API_KEY', default=None, required=True,
-        help="Canvas API URL")
-
-    parser.add_argument("--mode", type=str, 
+    parser.add_argument("--config", type=str,
+        dest='config', required=True,
+        help="Path to YAML confgig file")
+    parser.add_argument("--mode", type=str,
         dest='mode', default='get', required=False,
         help="Mode: 'get' or 'put'")
-    parser.add_argument("--directory", type=str, 
+    parser.add_argument("--directory", type=str,
         dest='path', default=None, required=True,
         help="Path to where to store files, or get feedback")
+    OPT = vars(parser.parse_args())
 
-    args = parser.parse_args()
-    OPT = vars(args)
-
+    # get options from the yml config file
+    try:
+        with open(OPT['config'], 'r') as file:
+            config = yaml.load(file)
+            OPT.update(config)
+    except yaml.YAMLError as e:
+        print("Error in configuration file:", e)
 
     canvas = Canvas(OPT['API_URL'], OPT['API_KEY'])
     course = canvas.get_course(OPT['COURSE_ID'])
@@ -72,13 +64,13 @@ if __name__ == '__main__':
 
     for s in assignment.get_submissions():
         print("User ID", s.user_id, '=', students[s.user_id].display_name)
-        
+
         if s.user_id != 7196:
             continue
 
         print("Submission Object", type(s), dir(s), s)
         pp.pprint(s)
-        
+
         if not 'attachments' in dir(s):
             print("No Attachments:")
         else:
@@ -102,8 +94,6 @@ if __name__ == '__main__':
                 print("\t  ", "modified_at:", a['modified_at'])
                 print("\t  ", "workflow_state:", a['workflow_state'])
         print()
-
-
 
     if OPT['mode'] == 'get':
         pass
