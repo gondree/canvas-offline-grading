@@ -1,0 +1,15 @@
+
+# the API key you generated
+API_KEY: your-API-key-goes-here
+
+# the API URL
+API_URL: your-API-url-goes-here
+
+# Examples:
+# API_URL: https://sonoma.instructure.com
+# API_URL: https://sonoma.beta.instructure.com
+# API_URL: https://sonoma.test.instructure.com
+
+# these are mandatory
+ASSIGNMENT_ID: 12345
+COURSE_ID: 11111
